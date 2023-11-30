@@ -1,4 +1,5 @@
 #include "fundamentals.cuh"
+#include "signal.h"
 #include <iostream>
 
 __global__ void addVec()
