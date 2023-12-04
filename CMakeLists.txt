@@ -3,6 +3,7 @@ project(ImageProcessing LANGUAGES CUDA CXX)
 
 add_subdirectory(DSP)
 add_subdirectory(unit-test)
+add_subdirectory(error-handling)
 
 add_executable(app src/fundamentals.cu)
 target_include_directories(app PRIVATE include)

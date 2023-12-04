@@ -9,7 +9,7 @@ template <typename DataType>
 __global__ void conv1d(const DataType* input, const int signalStride, // input signal and its stride
     const int lb, const int ub, // domain of input signal
     const int outputChunkSize, // chunk size of output signal
-    DataType* filter, const int filterStride, // filter and its stride
+    const DataType* filter, const int filterStride, // filter and its stride
     DataType* output, int* outLowerBound, int* outUpperBound)
 {
     /* Input signal and filter are cached in shared memory. */
@@ -57,32 +57,32 @@ __global__ void conv1d(const DataType* input, const int signalStride, // input s
         __syncthreads();
 
         /* Calculate the domain of output signal for the current block of threads. */
-        int outputStartIndex = (outputLowerBound + chunkIndex * outputChunkSize <= outputUpperBound) ? 
+        int chunkOutputStartIndex = (outputLowerBound + chunkIndex * outputChunkSize <= outputUpperBound) ? 
             outputLowerBound + chunkIndex * outputChunkSize : outputUpperBound;
 
-        int outputEndIndex = (outputStartIndex + outputChunkSize <= outputUpperBound) ? 
-            outputStartIndex + outputChunkSize : outputUpperBound;
+        int chunkOutputEndIndex = (chunkOutputStartIndex + outputChunkSize <= outputUpperBound) ? 
+            chunkOutputStartIndex + outputChunkSize : outputUpperBound;
 
-        if (outputStartIndex >= outputEndIndex) continue;
+        if (chunkOutputStartIndex >= chunkOutputEndIndex) continue;
 
         /* Load input signal into shared memory. */
-        for (auto inputSignalIndex = outputStartIndex - filterRadius + threadIdx.x; 
-            inputSignalIndex < outputEndIndex + filterRadius; inputSignalIndex += blockDim.x)
+        for (auto inputSignalIndex = chunkOutputStartIndex - filterRadius + threadIdx.x; 
+            inputSignalIndex < chunkOutputEndIndex + filterRadius; inputSignalIndex += blockDim.x)
         {
-            cachedInput[inputSignalIndex - (outputStartIndex - filterRadius)] = input[inputSignalIndex];
+            cachedInput[inputSignalIndex - (chunkOutputStartIndex - filterRadius)] = input[inputSignalIndex];
         }
         __syncthreads();
         
         /* Calculate filtering and write output to global memory. */
-        for (auto outputSignalIndex = outputStartIndex + threadIdx.x;
-            outputSignalIndex < outputEndIndex; outputSignalIndex += blockDim.x)
+        for (auto outputSignalIndex = chunkOutputStartIndex + threadIdx.x;
+            outputSignalIndex < chunkOutputEndIndex; outputSignalIndex += blockDim.x)
         {
             DataType filteredValue = static_cast<DataType>(0);
 
             for (auto filterIndex = 0; filterIndex < filterStride; filterIndex++)
             {
                 filteredValue += 
-                    cachedFilter[filterIndex] * cachedInput[outputSignalIndex - outputStartIndex - filterRadius + filterIndex];
+                    cachedFilter[filterIndex] * cachedInput[outputSignalIndex - chunkOutputStartIndex + filterIndex];
             }
 
             output[outputSignalIndex] = filteredValue;

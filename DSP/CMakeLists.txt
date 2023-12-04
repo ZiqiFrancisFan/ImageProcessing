@@ -4,10 +4,12 @@ project(DSP LANGUAGES CUDA CXX)
 add_library(dsp src/dsp.cu src/SignalProcessing.cpp)
 add_library(dspptx OBJECT src/dsp.cu)
 set_property(TARGET dspptx PROPERTY CUDA_PTX_COMPILATION ON)
-target_include_directories(dsp PUBLIC include)
+target_include_directories(dsp PUBLIC include PUBLIC ../error-handling/include)
 target_compile_definitions(dsp PUBLIC $<$<CONFIG:Debug>:DEBUG>)
 
-target_include_directories(dspptx PUBLIC include)
+target_link_libraries(dsp error_handling -lcublas -lcurand -lcusolver)
+
+target_include_directories(dspptx PUBLIC include PUBLIC ../error-handling/include)
 target_compile_definitions(dspptx PUBLIC $<$<CONFIG:Debug>:DEBUG>)
 
 get_property(target_property TARGET dsp PROPERTY COMPILE_DEFINITIONS)
