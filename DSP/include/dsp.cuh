@@ -25,8 +25,8 @@
 #include <cub/cub.cuh>
 // #include <cuda/std/atomic>
 
-#ifndef CUDA_CALL
-#define CUDA_CALL(x) \
+#ifndef CUDA_ERROR_HANDLING
+#define CUDA_ERROR_HANDLING(x) \
 do \
 { \
     x; \
@@ -91,13 +91,13 @@ public:
 template <typename DataType>
 DspGpuImpl1D<DataType>::DspGpuImpl1D()
 {
-    CUDA_CALL(cudaStreamCreate(&stream_));
+    CUDA_ERROR_HANDLING(cudaStreamCreate(&stream_));
 
-    CUDA_CALL(cudaMallocAsync((void**)(&inputSignal_d_), DEFAULT_SIGNAL_LENGTH * sizeof(DataType), stream_));
-    CUDA_CALL(cudaMallocAsync((void**)(&outputSignal_d_), DEFAULT_SIGNAL_LENGTH * sizeof(DataType), stream_));
+    CUDA_ERROR_HANDLING(cudaMallocAsync((void**)(&inputSignal_d_), DEFAULT_SIGNAL_LENGTH * sizeof(DataType), stream_));
+    CUDA_ERROR_HANDLING(cudaMallocAsync((void**)(&outputSignal_d_), DEFAULT_SIGNAL_LENGTH * sizeof(DataType), stream_));
 
-    CUDA_CALL(cudaMallocAsync((void**)(&lowerBound_d_), sizeof(int), stream_));
-    CUDA_CALL(cudaMallocAsync((void**)(&upperBound_d_), sizeof(int), stream_));
+    CUDA_ERROR_HANDLING(cudaMallocAsync((void**)(&lowerBound_d_), sizeof(int), stream_));
+    CUDA_ERROR_HANDLING(cudaMallocAsync((void**)(&upperBound_d_), sizeof(int), stream_));
 
     inputLowerBound_ = 0;
     inputUpperBound_ = 0;
@@ -143,11 +143,11 @@ DspGpuImpl1D<DataType>::DspGpuImpl1D(const DspGpuImpl1D& impl)
     stream_ = impl.stream_;
     signalStride_ = impl.signalStride_;
 
-    CUDA_CALL(cudaMallocAsync((void**)(&inputSignal_d_), signalStride_ * sizeof(DataType), stream_));
-    CUDA_CALL(cudaMallocAsync((void**)(&outputSignal_d_), signalStride_ * sizeof(DataType), stream_));
+    CUDA_ERROR_HANDLING(cudaMallocAsync((void**)(&inputSignal_d_), signalStride_ * sizeof(DataType), stream_));
+    CUDA_ERROR_HANDLING(cudaMallocAsync((void**)(&outputSignal_d_), signalStride_ * sizeof(DataType), stream_));
 
-    CUDA_CALL(cudaMallocAsync((void**)(&lowerBound_d_), sizeof(int), stream_));
-    CUDA_CALL(cudaMallocAsync((void**)(&upperBound_d_), sizeof(int), stream_));
+    CUDA_ERROR_HANDLING(cudaMallocAsync((void**)(&lowerBound_d_), sizeof(int), stream_));
+    CUDA_ERROR_HANDLING(cudaMallocAsync((void**)(&upperBound_d_), sizeof(int), stream_));
 
     inputLowerBound_ = impl.inputLowerBound_;
     inputUpperBound_ = impl.inputUpperBound_;

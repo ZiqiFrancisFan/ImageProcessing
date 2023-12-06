@@ -1,6 +1,14 @@
 #ifndef DSP_KERNELS_CUH
 #define DSP_KERNELS_CUH
 
+template <typename T>
+__device__ T* shared_memory_proxy()
+{
+    // do we need an __align__() here? I don't think so...
+    extern __shared__ unsigned char memory[];
+    return reinterpret_cast<T*>(memory);
+}
+
 /* This is a template that implements filtering of a signal by a filter. In this implementation,
     both the input and the filter are first loaded into shared memory and then filtering
     happens at the level of shared memory. In the end, output is written to global. */
@@ -13,7 +21,7 @@ __global__ void conv1d(const DataType* input, const int signalStride, // input s
     DataType* output, int* outLowerBound, int* outUpperBound)
 {
     /* Input signal and filter are cached in shared memory. */
-    extern __shared__ DataType cachedData[];
+    DataType* cachedData = shared_memory_proxy<DataType>();
 
     /* Get radius of filter. */
     int filterRadius = filterStride / 2;
